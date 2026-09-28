@@ -150,6 +150,20 @@ func TestParseMotorResponseMalformed(t *testing.T) {
 	require.ErrorContains(t, err, "malformed motor response")
 }
 
+func TestParseMotorResponsePadded(t *testing.T) {
+	// cs2 channel-0 payloads are NUL-padded to the frame size.
+	position, err := parseMotorResponse([]byte("{\"ret\":0, \"angle\":46,\"elevation\":50}\x00"))
+	require.NoError(t, err)
+	require.Equal(t, 46, position.Angle)
+	require.Equal(t, 50, position.Elevation)
+	require.Equal(t, 0, position.Ret)
+
+	position, err = parseMotorResponse([]byte("{\"angle\":46,\"elevation\":50,\"ret\":0}\x00\x00\n"))
+	require.NoError(t, err)
+	require.Equal(t, 46, position.Angle)
+	require.Equal(t, 50, position.Elevation)
+}
+
 func TestSetPositionValidation(t *testing.T) {
 	require.NoError(t, validateTargetPosition(1, 1))
 	require.NoError(t, validateTargetPosition(101, 101))

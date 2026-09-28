@@ -400,6 +400,9 @@ func validateTargetPosition(angle, elevation int) error {
 }
 
 func parseMotorResponse(data []byte) (*PTZPosition, error) {
+	// cs2 channel-0 payloads are NUL-padded, so trim the padding before parsing.
+	data = bytes.Trim(data, "\x00 \t\r\n")
+
 	var response motorResponse
 	if err := json.Unmarshal(data, &response); err != nil {
 		return nil, fmt.Errorf("xiaomi ptz: malformed motor response: %w", err)
